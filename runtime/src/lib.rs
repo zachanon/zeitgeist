@@ -419,6 +419,17 @@ impl pallet_transaction_payment::Config for Runtime {
 #[cfg(feature = "parachain")]
 impl parachain_info::Config for Runtime {}
 
+impl zrml_simple_disputes::Config for Runtime {
+    type DisputePeriod = DisputePeriod;
+    type Event = Event;
+    type MarketCommons = MarketCommons;
+    type OracleBond = OracleBond;
+    type PalletId = SimpleDisputesPalletId;
+    type Shares = Tokens;
+    type Swaps = Swaps;
+    type ValidityBond = ValidityBond;
+}
+
 impl zrml_liquidity_mining::Config for Runtime {
     type Currency = Balances;
     type Event = Event;
