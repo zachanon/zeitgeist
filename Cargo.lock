@@ -12125,6 +12125,7 @@ version = "0.1.2"
 dependencies = [
  "frame-support",
  "frame-system",
+ "hashbrown 0.11.2",
  "pallet-balances",
  "pallet-timestamp",
  "parity-scale-codec",
