@@ -419,17 +419,6 @@ impl pallet_transaction_payment::Config for Runtime {
 #[cfg(feature = "parachain")]
 impl parachain_info::Config for Runtime {}
 
-impl zrml_simple_disputes::Config for Runtime {
-    type DisputePeriod = DisputePeriod;
-    type Event = Event;
-    type MarketCommons = MarketCommons;
-    type OracleBond = OracleBond;
-    type PalletId = SimpleDisputesPalletId;
-    type Shares = Tokens;
-    type Swaps = Swaps;
-    type ValidityBond = ValidityBond;
-}
-
 impl zrml_liquidity_mining::Config for Runtime {
     type Currency = Balances;
     type Event = Event;
@@ -745,7 +734,7 @@ impl cumulus_pallet_parachain_system::CheckInherents<Block> for CheckInherents {
             .create_inherent_data()
             .expect("Could not create the timestamp inherent data");
 
-        inherent_data.check_extrinsics(&block)
+        inherent_data.check_extrinsics(block)
     }
 }
 
