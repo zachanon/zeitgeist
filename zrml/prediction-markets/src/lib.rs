@@ -918,21 +918,18 @@ mod pallet {
     impl<T: Config> Hooks<T::BlockNumber> for Pallet<T> {
         fn on_initialize(now: T::BlockNumber) -> Weight {
             let mut total_weight: Weight = 0;
-            let rslt = T::SimpleDisputes::on_resolution(
-                now,
-                |market_id, market| {
-                    let disputes = Disputes::<T>::get(market_id);
-                    let rc = T::SimpleDisputes::internal_resolve(
-                        &default_dispute_bound::<T>,
-                        &disputes,
-                        market_id,
-                        market,
-                    )?;
-                    let weight = Self::calculate_internal_resolve_weight(market, rc);
-                    total_weight = total_weight.saturating_add(weight);
-                    Ok(())
-                },
-            );
+            let rslt = T::SimpleDisputes::on_resolution(now, |market_id, market| {
+                let disputes = Disputes::<T>::get(market_id);
+                let rc = T::SimpleDisputes::internal_resolve(
+                    &default_dispute_bound::<T>,
+                    &disputes,
+                    market_id,
+                    market,
+                )?;
+                let weight = Self::calculate_internal_resolve_weight(market, rc);
+                total_weight = total_weight.saturating_add(weight);
+                Ok(())
+            });
             with_transaction(|| match rslt {
                 Err(err) => {
                     log::error!("Block {:?} was not initialized. Error: {:?}", now, err);
