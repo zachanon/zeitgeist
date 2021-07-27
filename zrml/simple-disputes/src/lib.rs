@@ -22,7 +22,7 @@ mod pallet {
         traits::{Currency, Get, Hooks, Imbalance, IsType, ReservableCurrency},
         Blake2_128Concat, PalletId,
     };
-    use sp_runtime::{DispatchError, SaturatedConversion};
+    use sp_runtime::{traits::Saturating, DispatchError, SaturatedConversion};
     use zeitgeist_primitives::{
         traits::{DisputeApi, Swaps, ZeitgeistMultiReservableCurrency},
         types::{
@@ -255,7 +255,7 @@ mod pallet {
                 _ => (),
             };
 
-            Self::set_pool_to_stale(&market, market_id, &resolved_outcome)?;
+            Self::set_pool_to_stale(market, market_id, &resolved_outcome)?;
             T::LiquidityMining::distribute_market_incentives(market_id)?;
             if let Ok([local_total_accounts, local_total_asset_accounts, local_total_categories]) =
                 Self::manage_resolved_categorical_market(market, market_id, &resolved_outcome)
@@ -339,10 +339,11 @@ mod pallet {
                 return Ok(());
             }
 
+            let block = now.saturating_sub(dispute_period);
+
             // Resolve all regularly reported markets.
-            let report_block = now - dispute_period;
-            let market_ids = Self::market_ids_per_report_block(&report_block).unwrap_or_default();
-            for id in &market_ids {
+            let reported_ids = Self::market_ids_per_report_block(&block).unwrap_or_default();
+            for id in &reported_ids {
                 let market = T::MarketCommons::market(id)?;
                 if let MarketStatus::Reported = market.status {
                     cb(id, &market)?;
@@ -350,9 +351,8 @@ mod pallet {
             }
 
             // Resolve any disputed markets.
-            let dispute_block = now - dispute_period;
-            let disputed = Self::market_ids_per_dispute_block(&dispute_block).unwrap_or_default();
-            for id in &disputed {
+            let disputed_ids = Self::market_ids_per_dispute_block(&block).unwrap_or_default();
+            for id in &disputed_ids {
                 let market = T::MarketCommons::market(id)?;
                 cb(id, &market)?;
             }
