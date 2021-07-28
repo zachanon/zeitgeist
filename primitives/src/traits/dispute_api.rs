@@ -10,14 +10,10 @@ pub trait DisputeApi {
     type Origin;
 
     /// Disputes a reported outcome.
-    fn on_dispute<D>(
-        dispute_bond: D,
+    fn on_dispute(
         disputes: &[MarketDispute<Self::AccountId, Self::BlockNumber>],
         market_id: Self::MarketId,
-        who: Self::AccountId,
-    ) -> DispatchResult
-    where
-        D: Fn(usize) -> Self::Balance;
+    ) -> DispatchResult;
 
     /// Manages markets resolutions moving all reported markets to resolved.
     fn on_resolution<F>(now: Self::BlockNumber, cb: F) -> DispatchResult

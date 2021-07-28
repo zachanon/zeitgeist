@@ -148,8 +148,8 @@ mod pallet {
             rng: &mut R,
         ) -> ArrayVec<&'b (T::AccountId, Juror<BalanceOf<T>>), MAX_RANDOM_JURORS>
         where
-            R: RngCore,
             'a: 'b,
+            R: RngCore,
         {
             let actual_len = jurors.len().min(len);
             jurors.choose_multiple(rng, actual_len).collect()
@@ -203,22 +203,18 @@ mod pallet {
         type Origin = T::Origin;
         type MarketId = MarketIdOf<T>;
 
-        fn on_dispute<D>(
-            dispute_bond: D,
+        fn on_dispute(
             disputes: &[MarketDispute<Self::AccountId, Self::BlockNumber>],
             market_id: Self::MarketId,
-            who: Self::AccountId,
-        ) -> DispatchResult
-        where
-            D: Fn(usize) -> Self::Balance,
-        {
-            CurrencyOf::<T>::reserve(&who, dispute_bond(disputes.len()))?;
+        ) -> DispatchResult {
             let jurors: Vec<_> = Jurors::<T>::iter().collect();
             let necessary_jurors_num = Self::necessary_jurors_num(disputes);
             let mut rng = Self::rng();
             let random_jurors = Self::random_jurors(&jurors, necessary_jurors_num, &mut rng);
+            let curr_block_num = <frame_system::Pallet<T>>::block_number();
+            let block_limit = curr_block_num.saturating_add(T::CourtCaseDuration::get());
             for (ai, _) in random_jurors {
-                RequestedJurors::<T>::insert(ai, market_id, T::CourtCaseDuration::get());
+                RequestedJurors::<T>::insert(ai, market_id, block_limit);
             }
             Ok(())
         }

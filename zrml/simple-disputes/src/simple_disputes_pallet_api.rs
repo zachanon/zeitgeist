@@ -1,5 +1,4 @@
-use alloc::vec::Vec;
-use frame_support::dispatch::{DispatchError, DispatchResult};
+use frame_support::dispatch::DispatchError;
 use zeitgeist_primitives::{
     traits::DisputeApi,
     types::{Market, MarketDispute, ResolutionCounters},
@@ -7,39 +6,6 @@ use zeitgeist_primitives::{
 
 /// SimpleDisputes - Pallet Api
 pub trait SimpleDisputesPalletApi: DisputeApi {
-    // MarketIdPerDisputeBlock
-
-    /// Inserts a disputed market ids of a block into the storage
-    fn insert_market_id_per_dispute_block(
-        block: Self::BlockNumber,
-        market_ids: Vec<Self::MarketId>,
-    );
-
-    /// Gets all disputed market ids of a block from the storage.
-    fn market_ids_per_dispute_block(
-        block: &Self::BlockNumber,
-    ) -> Result<Vec<Self::MarketId>, DispatchError>;
-
-    // MarketIdPerReportBlock
-
-    /// Inserts a reported market ids of a block into the storage
-    fn insert_market_id_per_report_block(block: Self::BlockNumber, market_ids: Vec<Self::MarketId>);
-
-    /// Gets all reported market ids of a block from the storage.
-    fn market_ids_per_report_block(
-        block: &Self::BlockNumber,
-    ) -> Result<Vec<Self::MarketId>, DispatchError>;
-
-    /// Mutates a given set of reported market ids
-    fn mutate_market_ids_per_report_block<F>(block: &Self::BlockNumber, cb: F) -> DispatchResult
-    where
-        F: FnOnce(&mut Vec<Self::MarketId>);
-
-    // Misc
-
-    /// The stored disputing period
-    fn dispute_period() -> Self::BlockNumber;
-
     /// Performs the logic for resolving a market, including slashing and distributing
     /// funds.
     ///

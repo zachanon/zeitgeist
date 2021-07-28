@@ -192,7 +192,7 @@ benchmarks! {
         for i in 0..c.min(T::MaxDisputes::get() as u32) {
             let origin = caller.clone();
             let disputes = crate::Disputes::<T>::get(&marketid);
-            let _ = T::SimpleDisputes::on_dispute(default_dispute_bound::<T>, &disputes, marketid, origin)?;
+            let _ = T::SimpleDisputes::on_dispute(&disputes, marketid)?;
         }
 
         let approval_origin = T::ApprovalOrigin::successful_origin();
@@ -296,7 +296,7 @@ benchmarks! {
     }:  {
         let origin = caller.clone();
         let disputes = crate::Disputes::<T>::get(&marketid);
-        let _ = T::SimpleDisputes::on_dispute(default_dispute_bound::<T>, &disputes, marketid, origin)?;
+        let _ = T::SimpleDisputes::on_dispute(&disputes, marketid)?;
     }
 
     internal_resolve_categorical_reported {
@@ -331,7 +331,7 @@ benchmarks! {
         for i in 0..c.min(d) {
             let origin = caller.clone();
             let disputes = crate::Disputes::<T>::get(&marketid);
-            let _ = T::SimpleDisputes::on_dispute(default_dispute_bound::<T>, &disputes, marketid, origin)?;
+            let _ = T::SimpleDisputes::on_dispute(&disputes, marketid)?;
         }
     }: {
         let market = T::MarketCommons::market(&marketid)?;
@@ -359,7 +359,7 @@ benchmarks! {
         for i in 0..d {
             let disputes = crate::Disputes::<T>::get(&marketid);
             let origin = caller.clone();
-            let _ = T::SimpleDisputes::on_dispute(default_dispute_bound::<T>, &disputes, marketid, origin)?;
+            let _ = T::SimpleDisputes::on_dispute(&disputes, marketid)?;
         }
     }: {
         let market = T::MarketCommons::market(&marketid)?;
@@ -369,7 +369,7 @@ benchmarks! {
 
     // This benchmark measures the cost of fn `on_initialize` minus the resolution.
     on_initialize_resolve_overhead {
-        let starting_block = frame_system::Pallet::<T>::block_number() + T::SimpleDisputes::dispute_period();
+        let starting_block = frame_system::Pallet::<T>::block_number() + T::DisputePeriod::get();
     }: { Pallet::<T>::on_initialize(starting_block * 2u32.into()) }
 
     redeem_shares_categorical {
