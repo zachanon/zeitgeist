@@ -6,14 +6,14 @@
 
 set -euxo pipefail
 
-PARACHAIN_CHAIN=battery_station_staging
+PARACHAIN_CHAIN=battery_station
 PARACHAIN_ID=9123
-POLKADOT_BRANCH=release-v0.9.8
+POLKADOT_BRANCH=battery-station-relay
 POLKADOT_DIR="target/polkadot"
 RELAYCHAIN_CHAIN=rococo-local
 
 if ! [ -d $POLKADOT_DIR ]; then
-  git clone https://github.com/paritytech/polkadot $POLKADOT_DIR
+  git clone https://github.com/zeitgeistpm/polkadot $POLKADOT_DIR
 fi
 
 cd $POLKADOT_DIR
@@ -55,6 +55,7 @@ start_validator() {
     --port=$port \
     --rpc-port=$rpc_port \
     --tmp \
+    --validator \
     --ws-port=$ws_port \
     -lruntime=trace
 }
@@ -62,7 +63,7 @@ start_validator() {
 # Feel free to comment, add or remove validators. Just remember that #Validators > #Collators 
 
 start_validator --alice 31000 8100 9100 &> /dev/null & node_pid=$!
-start_validator --bob 31001 8101 9101 &> /dev/null & node_pid=$!
+start_validator --bob 31001 8101 9101 & node_pid=$!
 
 # Zeitgeist collators
 
