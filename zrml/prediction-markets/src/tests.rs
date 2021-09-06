@@ -7,13 +7,15 @@ use crate::{
 use core::cell::RefCell;
 use frame_support::{
     assert_noop, assert_ok,
+    codec::Encode,
     dispatch::{DispatchError, DispatchResult},
     storage_root,
     traits::Get,
+    weights::GetDispatchInfo,
 };
 
 use orml_traits::MultiCurrency;
-use sp_runtime::traits::AccountIdConversion;
+use sp_runtime::traits::{AccountIdConversion, Hash, BlakeTwo256};
 use zeitgeist_primitives::{
     constants::BASE,
     types::{
@@ -132,8 +134,23 @@ fn it_allows_advisory_origin_to_approve_markets() {
         );
 
         // Now it should work from SUDO
-        assert_ok!(PredictionMarkets::approve_market(Origin::signed(SUDO), 0));
+        //assert_ok!(PredictionMarkets::approve_market(Origin::signed(SUDO), 0));
+        
+        let proposal = crate::Call::approve_market(0);
+        let proposal_len: u32 = proposal.using_encoded(|p| p.len() as u32);
+        let proposal_weight = proposal.get_dispatch_info().weight;
+        let hash = BlakeTwo256::hash_of(&proposal);
 
+        assert_ok!(Advisory::set_members(
+            Origin::root(),
+            vec![ALICE, BOB, CHARLIE],
+            Some(ALICE),
+            0u32,
+        ));
+
+        assert_ok!(Advisory::vote(Origin::signed(ALICE), hash.clone(), 0, true));
+        assert_ok!(Advisory::vote(Origin::signed(BOB), hash.clone(), 0, true));
+        
         let after_market = MarketCommons::market(&0);
         assert_eq!(after_market.unwrap().status, MarketStatus::Active);
     });

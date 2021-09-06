@@ -45,6 +45,9 @@ ord_parameter_types! {
 
 parameter_types! {
     pub const AdvisoryBond: Balance = 50;
+    pub const AdvisoryCommitteeMotionDuration: BlockNumber = 3;
+    pub const AdvisoryCommitteeMaxProposals: u32 = 3;
+    pub const AdvisoryCommitteeMaxMembers: u32 = 5;
     pub const AvailableBlockRatio: Perbill = Perbill::from_percent(75);
     pub const DisputeBond: Balance = 100;
     pub const DisputeFactor: Balance = 25;
@@ -74,11 +77,12 @@ construct_runtime!(
         NodeBlock = Block,
         UncheckedExtrinsic = UncheckedExtrinsic,
     {
+        Advisory: pallet_collective::<Instance1>::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>},
         Balances: pallet_balances::{Call, Config<T>, Event<T>, Pallet, Storage},
         Currency: orml_currencies::{Call, Event<T>, Pallet, Storage},
         LiquidityMining: zrml_liquidity_mining::{Config<T>, Event<T>, Pallet},
         MarketCommons: zrml_market_commons::{Pallet, Storage},
-        PredictionMarkets: prediction_markets::{Event<T>, Pallet, Storage},
+        PredictionMarkets: prediction_markets::{Call, Event<T>, Pallet, Storage},
         SimpleDisputes: zrml_simple_disputes::{Event<T>, Pallet, Storage},
         Swaps: zrml_swaps::{Call, Event<T>, Pallet},
         System: frame_system::{Call, Config, Event<T>, Pallet, Storage},
@@ -168,6 +172,18 @@ impl pallet_balances::Config for Runtime {
     type WeightInfo = ();
 }
 
+pub type AdvisoryCommittee = pallet_collective::Instance1;
+impl pallet_collective::Config<AdvisoryCommittee> for Runtime {
+    type Origin = Origin;
+    type Proposal = Call;
+    type Event = Event;
+    type MotionDuration = AdvisoryCommitteeMotionDuration;
+    type MaxProposals = AdvisoryCommitteeMaxProposals;
+    type MaxMembers = AdvisoryCommitteeMaxMembers;
+    type DefaultVote = pallet_collective::PrimeDefaultVote;
+    type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
+}
+
 impl pallet_timestamp::Config for Runtime {
     type MinimumPeriod = MinimumPeriod;
     type Moment = u64;
@@ -249,6 +265,7 @@ impl ExtBuilder {
 
 pub fn run_to_block(n: BlockNumber) {
     while System::block_number() < n {
+        Advisory::on_finalize(System::block_number());
         Balances::on_finalize(System::block_number());
         PredictionMarkets::on_finalize(System::block_number());
         System::on_finalize(System::block_number());
@@ -256,6 +273,7 @@ pub fn run_to_block(n: BlockNumber) {
         System::on_initialize(System::block_number());
         PredictionMarkets::on_initialize(System::block_number());
         Balances::on_initialize(System::block_number());
+        Advisory::on_initialize(System::block_number());
     }
 }
 
